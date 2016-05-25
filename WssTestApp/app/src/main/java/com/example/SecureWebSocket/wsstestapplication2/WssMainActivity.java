@@ -3,6 +3,7 @@ package com.example.SecureWebSocket.wsstestapplication2;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,9 +20,6 @@ public class WssMainActivity extends Activity {
     EditText sendMessage=null;
     EditText sendMessage2 = null;
     String Msg ="";
-    String sysStatusString ;
-    String errorDetailsString;
-    boolean taskRunning = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,10 +28,7 @@ public class WssMainActivity extends Activity {
          receivedMsg= (TextView)findViewById(R.id.receiveEditText);
          sendMessage = (EditText)findViewById(R.id.sendEditText);
          sendMessage2=(EditText)findViewById(R.id.sendEditText2);
-         status = (TextView)findViewById(R.id.statusTextView);
-        errorDetails=(TextView)findViewById(R.id.errorDetailsTextView);
-        status.setText("");
-        errorDetails.setText("");
+
     }
 
     public class DataHolderClass{
@@ -43,6 +38,10 @@ public class WssMainActivity extends Activity {
 
     public void sendTextWSS(View view) throws InterruptedException {
         //Handles the action after send button is clicked.
+        //Changing Thread policy permissions to allow network operation on main Thread.
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
        final HeaderConfiguration headerConfiguration = new HeaderConfiguration();
         headerConfiguration.setUserInfo("Android", "Websocket");
@@ -52,85 +51,38 @@ public class WssMainActivity extends Activity {
         obj.team2 = sendMessage2.getText().toString();
         final String jsonString = encodeJSONS(obj);
 
-        status.setText("");
-        errorDetails.setText("");
+        try {
+            new WebSocketFactory().createSocket("wss://echo.websocket.org",headerConfiguration).addListener(new com.example.SecureWebSocket.securewebsocketlibrary.WebSocketAdapter() {
+                @Override
+                public void onTextMessage(com.example.SecureWebSocket.securewebsocketlibrary.WebSocket ws, String message) {
+                    // Received a response. set the received message to text of receiveEditText.
+                    Msg=decodeJSON(message);
 
-        Thread thread = new Thread(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                taskRunning= true;
-                String tempStatus =null;
-                String tempErrorDetails =null;
-                String tempMsg =null;
-                try
-                {
-                    try {
+                    receivedMsg.setText(Msg);
 
-                        new WebSocketFactory().createSocket("wss://echo.websocket.org",headerConfiguration).addListener(new com.example.SecureWebSocket.securewebsocketlibrary.WebSocketAdapter() {
-                            @Override
-                            public void onTextMessage(com.example.SecureWebSocket.securewebsocketlibrary.WebSocket ws, String message) {
-                                // Received a response. set the received message to text of receiveEditText.
-                                Msg=decodeJSON(message);
-
-                                //receivedMsg.setText(Msg);
-
-                                // Close the WebSocket connection.
-                                ws.disconnect();
-                            }
-                        })
-                                .connect()
-                                .sendText(jsonString);
-                        tempStatus="Successful";
-
-
-                    }
-                    catch (WebSocketException e)
-                    {
-                        //show message when exception occurs.
-                        tempStatus="Failed1";
-                        tempErrorDetails=e.toString();
-                    }
-
-                    catch (Exception e)
-                    {
-                        //show message when exception occurs.
-                        tempErrorDetails=e.toString();
-                        tempStatus="Failed2";
-                    }
+                    // Close the WebSocket connection.
+                    ws.disconnect();
                 }
-                catch (Exception e)
-                {
-                    tempErrorDetails=e.toString();
-                    tempStatus="Failed2";
-                }
-                sysStatusString=tempStatus;
-                errorDetailsString=tempErrorDetails;
-                Msg=tempMsg;
-                taskRunning = false;
-            }
+            })
+                    .connect()
+                    .sendText(jsonString);
 
-        });
-
-        thread.start();
-
-        Thread.sleep(500);
-
-        while(taskRunning)
+        }
+        catch (WebSocketException e)
         {
-            try {
-                Thread.sleep(1000);
-            }
-            catch (Exception e)
-            {
-
-            }
+            //show alert when exception occurs.
+            AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+            alertDialog.setMessage("Not able to connect to server. Please check your internet connection.");
+            alertDialog.show();
         }
 
-        receivedMsg.setText(Msg);
-        status.setText(sysStatusString);
-        errorDetails.setText(errorDetailsString);
+        catch (Exception e)
+        {
+            //show alert when exception occurs.
+            AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+            alertDialog.setMessage(e.toString());
+            alertDialog.show();
+        }
 
     }
 

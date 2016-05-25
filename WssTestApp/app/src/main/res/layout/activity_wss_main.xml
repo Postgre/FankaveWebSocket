@@ -149,40 +149,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="Status:-"
-                android:id="@+id/textView4"
-                android:layout_column="0"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="#Status#"
-                android:id="@+id/statusTextView"
-                android:layout_column="1"
-                android:layout_span="2"
-                android:textStyle="bold"
-                android:gravity="center_vertical|center_horizontal" />
         </TableRow>
 
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="200dp"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="#Error Details#"
-                android:id="@+id/errorDetailsTextView"
-                android:layout_column="1"
-                android:layout_span="2"
-                android:gravity="center_vertical|center_horizontal" />
         </TableRow>
 
     </TableLayout>
